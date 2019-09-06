@@ -1,0 +1,9 @@
+{
+	"fonts": {
+		"Oswald": [200, 400],
+		"Rajdhani": [300, 400, 500, 600, 700],
+		"Roboto": [300, 400, 500, 600, 700]
+	},
+	"family": ["latin-ext"],
+	"css": "./src/google-fonts.less"
+}

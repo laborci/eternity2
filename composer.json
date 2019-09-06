@@ -1,0 +1,28 @@
+{
+    "name": "laborci/eternity2",
+    "description": "Eternity Framework 2",
+    "keywords": [],
+    "license" : "MIT",
+    "authors" : [
+        {
+            "name": "Gergely Laborci",
+            "email": "gergely@laborci.hu"
+        }
+    ],
+    "require": {
+        "symfony/http-foundation": "^3.3",
+        "nabil1337/case-helper": "^0.1.0",
+        "twig/twig":"^2.0",
+        "minime/annotations": "~3.0",
+        "symfony/yaml": "^4.2",
+        "symfony/console": "^3.4.28",
+        "riimu/kit-phpencoder": "^2.3",
+        "laborci/valentine-date": "^1.0",
+        "redant/console": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Eternity2\\": "src/"
+        }
+    }
+}
