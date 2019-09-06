@@ -25,9 +25,9 @@ class AuthService implements AuthServiceInterface{
 	public function getAuthenticatedId(): int{ return $this->session->getUserId(); }
 
 	public function checkPermission($permission): bool{
-		return $this->isAuthenticated() ?
-			$this->repository->authLookup($this->session->getUserId())->checkPermission($permission) :
-			false;
+		if(!$this->isAuthenticated()) return false;
+		if(!$this->repository->authLookup($this->session->getUserId())) return false;
+		return $this->repository->authLookup($this->session->getUserId())->checkPermission($permission);
 	}
 
 
