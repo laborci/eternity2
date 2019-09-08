@@ -1,4 +1,4 @@
 {% extends('@smartpage/smartpage.twig') %}
 {% block content %}
-	<div is="codex-login" data-title="CodexII" data-icon="fas fa-gamepad fa-spin" data-login-placeholder="e-mail"></div>
+	<div is="codex-login" data-title="{{ admin.title }}" data-icon="{{ admin.icon }}" data-login-placeholder="{{ admin['login-placeholder'] }}"></div>
 {% endblock %}

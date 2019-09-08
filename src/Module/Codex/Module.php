@@ -32,8 +32,16 @@ class Module implements ModuleInterface{
 	protected $menu;
 	public function getMenu(){ return $this->menu; }
 
+	protected $admin = [
+		'title'                => 'Codex2',
+		'icon'                 => 'fal fa-infinite',
+		'login-placeholder'    => 'e-mail',
+	];
+	public function getAdmin(): array{ return $this->admin; }
+
 	public function __invoke($env){
 		if (array_key_exists('menu', $env)) $this->menu = $env['menu'];
+		if (array_key_exists('admin', $env)) $this->admin = $env['admin'];
 		EventManager::listen(Application::EVENT_ROUTING_FINISHED, [$this, 'route']);
 		EventManager::listen(Twigger::EVENT_TWIG_ENVIRONMENT_CREATED, function (){
 			Twigger::Service()->addPath(__DIR__ . '/Page/@template/', 'codex');
