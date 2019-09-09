@@ -24,6 +24,10 @@ abstract class AdminDescriptor implements SharedService{
 	protected $urlBase = null;
 	/** @var DataProviderInterface */
 	protected $dataProvider;
+	protected $config;
+
+	public function setConfig($config = null){ $this->config = $config; }
+	public function getConfig(){ return $this->config; }
 
 	public function __construct(){
 		if (is_null($this->urlBase)) $this->urlBase = (new \ReflectionClass($this))->getShortName();

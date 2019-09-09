@@ -8,12 +8,15 @@ class AdminRegistry implements SharedService{
 
 	protected $admins = [];
 
-	public function registerForm($form){
-		$this->admins[(new \ReflectionClass($form))->getShortName()] = $form;
+	public function registerForm($form, $config=null){
+		$this->admins[(new \ReflectionClass($form))->getShortName()] = ['form'=>$form, 'config'=>$config];
 	}
 
 	public function get($name):AdminDescriptor{
-		$form = $this->admins[$name];
-		return $form::Service();
+		$form = $this->admins[$name]['form'];
+		/** @var \Eternity2\Module\Codex\Codex\AdminDescriptor $codex */
+		$codex = $form::Service();
+		$codex->setConfig($this->admins[$name]['config']);
+		return $codex;
 	}
 }

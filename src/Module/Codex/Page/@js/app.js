@@ -1,4 +1,4 @@
-import AdminApplication from "z-codex/admin-app";
+import AdminApplication from "zengular-codex/admin-app";
 import menu             from "./src/menu";
 import "./src/plugin-loader";
 
