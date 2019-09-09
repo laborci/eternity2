@@ -54,7 +54,7 @@ class ListHandler implements JsonSerializable{
 
 	public function get($page, $sorting = null, $filter = null): ListingResult{
 
-		$items = $this->dataProvider->getList($page, $sorting, $filter, $this->pageSize, $count);
+		$items = $this->dataProvider->getList($page, $sorting, $this->filterCreator->createFilter($filter), $this->pageSize, $count);
 		$rows = [];
 		foreach ($items as $item) $rows[] = $this->itemConverter->convertItem($item);
 
