@@ -76,7 +76,7 @@ class Module implements ModuleInterface{
 		$router->get('/', Page\Index::class)();
 	}
 
-	public function register($form, $config = null){ $this->adminRegistry->registerForm($form, $config); }
+	public function register($form){ $this->adminRegistry->registerForm($form); }
 
 }
 

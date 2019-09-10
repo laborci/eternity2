@@ -96,7 +96,7 @@ class Field{
 			case self::TYPE_BOOL:
 				return (bool)$value;
 			case self::TYPE_SET:
-				return !$value ? [] : explode(',', $value);
+				return $value;
 			case self::TYPE_JSON:
 				return json_decode($value, true);
 		}
