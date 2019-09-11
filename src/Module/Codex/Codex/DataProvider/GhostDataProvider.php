@@ -87,5 +87,10 @@ class GhostDataProvider implements DataProviderInterface{
 		$item->getAttachmentCategoryManager($target)->addFile($item->getAttachmentCategoryManager($source)->get($file));
 		$item->getAttachmentCategoryManager($source)->get($file)->remove();
 	}
+	
+	public function deleteAttachment($id, $file, $category){
+		$item = $this->getItem($id);
+		$item->getAttachmentCategoryManager($category)->get($file)->remove();
+	}
 }
 

@@ -25,11 +25,10 @@ class MysqlPDOConnection extends AbstractPDOConnection {
 	}
 
 	private $filterBuilder;
-	private $finder;
 	private $smartAccess;
 	private $repositories = [];
 
-	public function createFinder(): AbstractFinder { return $this->finder ? $this->finder : ($this->finder = new MysqlFinder($this)); }
+	public function createFinder(): AbstractFinder { return new MysqlFinder($this); }
 	public function createSmartAccess(): AbstractSmartAccess { return $this->smartAccess ? $this->smartAccess : ($this->smartAccess = new MysqlSmartAccess($this)); }
 	public function createRepository(string $table): AbstractRepository { return array_key_exists($table, $this->repositories) ? $this->repositories[$table] : ($this->repositories[$table] = new MysqlRepository($this, $table)); }
 	public function createFilterBuilder(): AbstractFilterBuilder { return $this->filterBuilder ? $this->filterBuilder : ($this->filterBuilder = new MysqlFilterBuilder($this)); }

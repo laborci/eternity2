@@ -28,4 +28,24 @@ class DotArray{
 	protected static function accessible($value){ return is_array($value) || $value instanceof \ArrayAccess; }
 	protected static function exists($array, $key){ return ($array instanceof \ArrayAccess) ? $array->offsetExists($key) : array_key_exists($key, $array); }
 	protected static function value($value){ return $value instanceof \Closure ? $value() : $value; }
+
+	public static function flatten($arr){
+		$iterator = new \RecursiveIteratorIterator(
+			new \RecursiveArrayIterator($arr),
+			\RecursiveIteratorIterator::SELF_FIRST
+		);
+		$path = [];
+		$flatArray = [];
+
+		foreach ($iterator as $key => $value) {
+			$path[$iterator->getDepth()] = $key;
+
+			if (!is_array($value)) {
+				$flatArray[
+				implode('.', array_slice($path, 0, $iterator->getDepth() + 1))
+				] = $value;
+			}
+		}
+		return $flatArray;
+	}
 }

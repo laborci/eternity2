@@ -6,30 +6,63 @@ class EnvLoader{
 
 	protected $env = [];
 
-	public static function load(){ return static::parseExpressions(static::loadYml(getenv('ini-file'))); }
+	public static function load(){
+		return (new static())->loadEnv();
+	}
+
 	public static function save(){
-		$content = "<?php return ".var_export(static::load(), true).';';
+		$content = "<?php return " . var_export(static::load(), true) . ';';
 		file_put_contents(getenv('env-path') . getenv('env-build-file'), $content);
 	}
 
-	protected static function parseExpressions(array $array){
-		foreach ($array as $key => $value){
-			if (!is_array($value)){
-				if (substr($key, 0, 1) === '~'){
-					$array[substr($key, 1)] = getenv('root') . $value;
-					unset($array[$key]);
-					$key = substr($key, 1);
-				}
-				if(strpos($key, '.') !== false){
-					DotArray::set($array, $key, $value);
-					unset($array[$key]);
-				}
-			}else $array[$key] = static::parseExpressions($value);
-		}
-		return $array;
+	protected function loadEnv(){
+		$env = $this->loadYml(getenv('ini-file'));
+		$env['root'] = $env['path']['root'] = getenv('root');
+		$env = DotArray::flatten($env);
+		$env = $this->pathFinder($env);
+		foreach ($env as $key=>$value) DotArray::set($env, $key, $value);
+		return $env;
 	}
 
-	protected static function loadYml($file){
+	protected function pathFinder($env){
+		$resolvables = [];
+		foreach ($env as $key => $value){
+			if (strpos($key, '~') !== false){
+
+				if (strpos($key, '~(') !== false){
+					preg_match('/~\((.*?)\)/', $key, $matches);
+					$newKey = str_replace($matches[0], '', $key);
+					$parent = $matches[1];
+				}else{
+					$newKey = str_replace('~','', $key);
+					$parent = 'root';
+				}
+				$path = [
+					'newKey' => $newKey,
+					'parent' => $parent,
+					'value' =>$value
+				];
+				$resolvables[$key] = $path;
+			}
+		}
+		do{
+			$count = count($resolvables);
+			foreach ($resolvables as $key=>$resolvable){
+				if(array_key_exists($resolvable['parent'], $env)){
+					$parent = $env[$resolvable['parent']];
+					if(substr($parent,-1) !== '/')$parent.='/';
+					$env[$resolvable['newKey']] = $parent.$resolvable['value'];
+					unset($env[$key]);
+					unset($resolvables[$key]);
+				}
+			}
+			if($count === count($resolvables)) throw new \Exception('Env path eference not found');
+		}while(count($resolvables));
+
+		return $env;
+	}
+
+	protected function loadYml($file){
 		$ini_file = getenv('ini-path') . $file . '.yml';
 		$ini_local = getenv('ini-path') . $file . '.local.yml';
 
@@ -49,7 +82,7 @@ class EnvLoader{
 				$value = [];
 				if (is_string($includes)) $includes = [$includes];
 				foreach ($includes as $include){
-					$value = array_replace_recursive($value, static::loadYml($include));
+					$value = array_replace_recursive($value, $this->loadYml($include));
 				}
 			}
 			if (is_array($value)) $value = array_merge_recursive(DotArray::get($env, $key), $value);

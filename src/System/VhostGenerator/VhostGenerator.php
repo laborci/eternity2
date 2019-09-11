@@ -10,8 +10,10 @@ class VhostGenerator {
 			$source = $template['source'];
 			$target = $template['target'];
 			$template = file_get_contents($source);
-			$template = str_replace('{{domain}}', env('domain'), $template);
-			$template = str_replace('{{root}}', getenv('root'), $template);
+
+			preg_match_all('/\{\{(.*?)\}\}/', $template, $matches);
+			$keys = array_unique($matches[1]);
+			foreach ($keys as $key) $template = str_replace('{{'.$key.'}}', env($key), $template);
 			file_put_contents($target, $template);
 		}
 	}
