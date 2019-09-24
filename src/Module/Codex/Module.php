@@ -1,5 +1,6 @@
 <?php namespace Eternity2\Module\Codex;
 
+use Application\Service\Auth\CodexWhoAmI;
 use Eternity2\Module\Codex\Action\CodexAttachmentCopy;
 use Eternity2\Module\Codex\Action\CodexAttachmentDelete;
 use Eternity2\Module\Codex\Action\CodexAttachmentGet;
@@ -18,6 +19,7 @@ use Eternity2\System\Event\EventManager;
 use Eternity2\System\Module\ModuleInterface;
 use Eternity2\Mission\Web\Application;
 use Eternity2\Mission\Web\Routing\Router;
+use Eternity2\System\ServiceManager\ServiceContainer;
 use Eternity2\Thumbnail\ThumbnailResponder;
 
 class Module implements ModuleInterface{
@@ -40,6 +42,9 @@ class Module implements ModuleInterface{
 	public function getAdmin(): array{ return $this->admin; }
 
 	public function __invoke($env){
+
+		ServiceContainer::shared(CodexWhoAmIInterface::class)->service($env['services']['WhoAmI']);
+
 		if (array_key_exists('menu', $env)) $this->menu = $env['menu'];
 		if (array_key_exists('admin', $env)) $this->admin = $env['admin'];
 		EventManager::listen(Application::EVENT_ROUTING_FINISHED, [$this, 'route']);

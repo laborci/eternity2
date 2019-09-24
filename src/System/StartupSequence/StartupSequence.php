@@ -4,6 +4,7 @@ use Eternity2\RemoteLog\RemoteLog;
 use Eternity2\System\Env\Env;
 use Eternity2\System\Env\EnvLoader;
 use Eternity2\System\ServiceManager\ServiceContainer;
+use Symfony\Component\HttpFoundation\Request;
 
 class StartupSequence {
 
@@ -28,6 +29,8 @@ class StartupSequence {
 		if (env('output-buffering')) ob_start();
 		date_default_timezone_set(env('timezone'));
 		if(getenv('context') === 'WEB') session_start();
+
+		ServiceContainer::shared(Request::class)->factoryStatic([Request::class, 'createFromGlobals']);
 
 		foreach (env('boot-sequence') as $sequence) {
 			(function(BootSequnece $sequence){$sequence->run();})(ServiceContainer::get($sequence));

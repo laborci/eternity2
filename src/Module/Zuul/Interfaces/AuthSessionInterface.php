@@ -1,4 +1,4 @@
-<?php namespace Eternity2\Zuul;
+<?php namespace Eternity2\Module\Zuul\Interfaces;
 
 interface AuthSessionInterface {
 

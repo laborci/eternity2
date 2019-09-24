@@ -1,6 +1,6 @@
-<?php namespace Eternity2\Zuul;
+<?php namespace Eternity2\Module\Zuul\Interfaces;
 
-interface AuthenticableRepositoryInterface {
+interface AuthRepositoryInterface {
 
 	public function authLookup($id):?AuthenticableInterface;
 	public function authLoginLookup($login):?AuthenticableInterface;

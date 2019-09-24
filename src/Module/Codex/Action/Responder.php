@@ -2,18 +2,18 @@
 
 use Eternity2\Module\Codex\Codex\AdminRegistry;
 use Eternity2\Mission\Web\Responder\JsonResponder;
-use Eternity2\Zuul\AuthServiceInterface;
+use Eternity2\Module\Zuul\AuthService;
 use Symfony\Component\HttpFoundation\Response;
 abstract class Responder extends JsonResponder{
 
 	/** @var \Eternity2\Module\Codex\Codex\AdminDescriptor */
 	protected $adminDescriptor;
-	/** @var \Eternity2\Zuul\AuthServiceInterface */
+	/** @var \Eternity2\Module\Zuul\AuthService */
 	protected $authService;
 	/** @var \Eternity2\Module\Codex\Codex\AdminRegistry */
 	private $adminRegistry;
 
-	public function __construct(AdminRegistry $adminRegistry, AuthServiceInterface $authService){
+	public function __construct(AdminRegistry $adminRegistry, AuthService $authService){
 		$this->authService = $authService;
 		$this->adminRegistry = $adminRegistry;
 	}

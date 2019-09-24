@@ -1,7 +1,7 @@
-<?php namespace Eternity2\Mission\Web\Middleware;
+<?php namespace Eternity2\Module\Zuul\Auth\Middleware;
 
 use Eternity2\Mission\Web\Pipeline\Middleware;
-use Eternity2\Zuul\AuthServiceInterface;
+use Eternity2\Module\Zuul\Interfaces\AuthServiceInterface;
 
 class PermissionCheck extends Middleware {
 
@@ -23,6 +23,14 @@ class PermissionCheck extends Middleware {
 		} else {
 			$this->next();
 		}
+	}
+
+	static public function config($responder, $permission, $logoutOnFail){
+		return[
+			'responder' => $responder,
+			'permission'=>$permission,
+			'logout-on-fail'=>$logoutOnFail
+		];
 	}
 
 }

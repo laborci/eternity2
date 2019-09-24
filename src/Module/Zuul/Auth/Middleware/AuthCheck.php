@@ -1,7 +1,7 @@
-<?php namespace Eternity2\Mission\Web\Middleware;
+<?php namespace Eternity2\Module\Zuul\Auth\Middleware;
 
 use Eternity2\Mission\Web\Pipeline\Middleware;
-use Eternity2\Zuul\AuthServiceInterface;
+use Eternity2\Module\Zuul\Interfaces\AuthServiceInterface;
 
 class AuthCheck extends Middleware {
 
@@ -20,5 +20,10 @@ class AuthCheck extends Middleware {
 			$this->next();
 		}
 	}
+
+	static public function config($responder){
+		return ['responder'=>$responder];
+	}
+
 
 }

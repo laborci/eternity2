@@ -5,8 +5,8 @@ use Eternity2\Module\SmartPageResponder\Responder\SmartPageResponder;
 use Eternity2\System\Module\ModuleLoader;
 
 /**
- * @css       /admin/css/style.css
- * @js        /admin/js/login.js
+ * @css       /~admin/css/style.css
+ * @js        /~admin/js/login.js
  * @title     Admin
  * @bodyclass login
  * @template "@codex/Login.twig"
