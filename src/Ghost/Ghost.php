@@ -59,6 +59,14 @@ abstract class Ghost implements JsonSerializable, AttachmentOwnerInterface{
 		return null;
 	}
 
+	public function __isset(string $name){
+		return
+			array_key_exists($name, static::model()->fields) ||
+			array_key_exists($name, static::model()->relations) ||
+			static::model()->getAttachmentStorage()->hasCategory($name)
+			;
+	}
+
 	public function __set($name, $value){
 		$field = array_key_exists($name, static::model()->fields) ? static::model()->fields[$name] : null;
 		if (!is_null($field) && $field->setter !== false){
@@ -126,10 +134,10 @@ abstract class Ghost implements JsonSerializable, AttachmentOwnerInterface{
 #region CRUD
 	final public function delete(){
 		if ($this->isExists()){
-			if ($this->on(static::EVENT___BEFORE_DELETE) === false || !static::model()->isMutable()) return false;
+			if ($this->onBeforeDelete() === false || !static::model()->isMutable()) return false;
 			static::model()->repository->delete($this->id);
 			$this->deleted = true;
-			$this->on(static::EVENT___AFTER_DELETE);
+			$this->onAfterDelete();
 		}
 		return true;
 	}
@@ -143,31 +151,30 @@ abstract class Ghost implements JsonSerializable, AttachmentOwnerInterface{
 	}
 
 	final private function update(){
-		if ($this->on(static::EVENT___BEFORE_UPDATE) === false || !static::model()->isMutable()) return false;
+		if ($this->onBeforeUpdate()=== false || !static::model()->isMutable()) return false;
 		static::model()->repository->update($this);
-		$this->on(static::EVENT___AFTER_UPDATE);
+		$this->onAfterUpdate();
 		return $this->id;
 	}
 
 	final private function insert(){
-		if ($this->on(static::EVENT___BEFORE_INSERT) === false || !static::model()->isMutable()) return false;
+		if ($this->onBeforeInsert()=== false || !static::model()->isMutable()) return false;
 		$this->id = static::model()->repository->insert($this);
-		$this->on(static::EVENT___AFTER_INSERT);
+		$this->onAfterInsert();
 		return $this->id;
 	}
 
 #endregion
 
 #region Events
-	const EVENT___BEFORE_DELETE = 'before_delete';
-	const EVENT___AFTER_DELETE = 'after_delete';
-	const EVENT___BEFORE_UPDATE = 'before_update';
-	const EVENT___AFTER_UPDATE = 'after_update';
-	const EVENT___BEFORE_INSERT = 'before_insert';
-	const EVENT___AFTER_INSERT = 'after_insert';
-	const EVENT___ATTACHMENT_ADDED = 'attachment_added';
-
-	public function on($event, $data = null){ return true; }
+	public function onBeforeDelete($data = null){ return true; }
+	public function onAfterDelete($data = null){ return true; }
+	public function onBeforeUpdate($data = null){ return true; }
+	public function onAfterUpdate($data = null){ return true; }
+	public function onBeforeInsert($data = null){ return true; }
+	public function onAfterInsert($data = null){ return true; }
+	public function onAttachmentAdded($data = null){ return true; }
+	public function onAttachmentRemoved($data = null){ return true; }
 #endregion
 
 }

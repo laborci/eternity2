@@ -2,7 +2,6 @@
 
 use Eternity2\Thumbnail\Thumbnail;
 use JsonSerializable;
-use name;
 use Symfony\Component\HttpFoundation\File\File;
 
 /**
@@ -45,8 +44,16 @@ class Attachment extends File implements JsonSerializable{
 				return $this->getCategory()->getName();
 			case 'thumbnail':
 				return new Thumbnail($this);
+			case 'file':
+				return $this->getFilename();
+			case 'extension':
+				return strtolower($this->getExtension());
 		}
 		return null;
+	}
+
+	public function __isset($name){
+		return in_array($name,['path', 'url', 'category', 'thumbnail', 'file', 'extension']);
 	}
 
 	public function getRecord(){

@@ -41,11 +41,16 @@ class AttachmentCategoryManager {
 
 	public function addFile(File $file, $description = '', $ordinal = 0, $meta = []) {
 
+		if ($file instanceof UploadedFile){
+			$extension = $file->getClientOriginalExtension();
+		}else{
+			$extension = $file->getExtension();
+		}
 		if ($this->count >= $this->category->getMaxFileCount()) {
 			throw new FileCount();
 		} else if ($file->getSize() > $this->category->getMaxFileSize()) {
 			throw new FileSize();
-		} else if (count($this->category->getAcceptedExtensions()) && !in_array($file->getExtension(), $this->category->getAcceptedExtensions())) {
+		} else if (count($this->category->getAcceptedExtensions()) && !in_array($extension, $this->category->getAcceptedExtensions())) {
 			throw new FileNotAcceptable();
 		}
 
@@ -59,7 +64,7 @@ class AttachmentCategoryManager {
 
 		$attachment = new Attachment($file->getFilename(), $this, $description, $ordinal, $meta);
 
-		$this->owner->on(AttachmentOwnerInterface::EVENT__ATTACHMENT_ADDED, [
+		$this->owner->onAttachmentAdded([
 			'category'   => $this->category,
 			'attachment' => $attachment,
 		]);
@@ -99,6 +104,10 @@ class AttachmentCategoryManager {
 		return null;
 	}
 
+	public function __isset($name){
+		return in_array($name, ['all', 'first', 'count']);
+	}
+
 	public function store(Attachment $attachment) {
 		$record = $attachment->getRecord();
 		$statement = $this->attachmentStorage->getMetaDBConnection()
@@ -129,6 +138,7 @@ class AttachmentCategoryManager {
 	}
 
 	public function remove(Attachment $attachment) {
+		dump('DELETE');
 		$statement = $this->attachmentStorage->getMetaDBConnection()
 			->prepare("DELETE FROM file WHERE path = :path AND file = :file AND category = :category");
 		$statement->bindValue(':path', $this->owner->getPath());
@@ -142,11 +152,11 @@ class AttachmentCategoryManager {
 		$statement->bindValue(':file', $attachment->getFilename());
 
 		$hasFile = (bool)intval($statement->execute()->fetchArray(SQLITE3_ASSOC)['count']);
-
+dump($hasFile);
 		if (!$hasFile)
 			unlink($attachment->getRealPath());
 
-		$this->owner->on(AttachmentOwnerInterface::EVENT__ATTACHMENT_REMOVED, ['category' => $this->category]);
+		$this->owner->onAttachmentRemoved(['category' => $this->category]);
 
 		$this->attachments = null;
 	}
