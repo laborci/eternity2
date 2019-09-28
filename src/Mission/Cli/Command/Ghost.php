@@ -1,12 +1,13 @@
-<?php namespace Eternity2\Ghost\Generator;
+<?php namespace Eternity2\Mission\Cli\Command;
 
+use Eternity2\Ghost\Generator\Creator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-class CliCommand extends Command {
+class Ghost extends Command {
 
 	/** @var SymfonyStyle */
 	protected $output;

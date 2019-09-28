@@ -10,7 +10,7 @@ class Application implements Mission, SharedService{
 
 	private function addCommands(){
 		$commands = $this->env['commands'];
-		foreach ($commands as $command){
+		if(is_array($commands)) foreach ($commands as $command){
 			$this->application->add(new $command());
 		}
 	}
@@ -22,6 +22,12 @@ class Application implements Mission, SharedService{
 	public function run($env){
 		$this->env = $env;
 		$this->application = new \Symfony\Component\Console\Application('plx', '2');
+
+		$this->application->add(new Command\Dump());
+		$this->application->add(new Command\ShowEnv());
+		$this->application->add(new Command\Ghost());
+		$this->application->add(new Command\Vhost());
+
 		$this->addCommands();
 		$this->addCustomCommands();
 		$this->application->run();

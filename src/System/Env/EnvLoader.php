@@ -6,9 +6,19 @@ class EnvLoader{
 
 	protected $env = [];
 
-	public static function load(){
-		return (new static())->loadEnv();
+	public static function checkCache(){
+		$cacheFile = getenv('env-path') . getenv('env-build-file');
+		if(!file_exists($cacheFile)) return false;
+		$latestBuild = filemtime($cacheFile);
+		$dir = new \RecursiveDirectoryIterator(getenv('ini-path'));
+		$iterator = new \RecursiveIteratorIterator($dir);
+		foreach ($iterator as $fileinfo){
+			if ($fileinfo->getMTime() > $latestBuild) return false;
+		}
+		return true;
 	}
+
+	public static function load(){ return (new static())->loadEnv(); }
 
 	public static function save(){
 		$content = "<?php return " . var_export(static::load(), true) . ';';
@@ -20,7 +30,7 @@ class EnvLoader{
 		$env['root'] = $env['path']['root'] = getenv('root');
 		$env = DotArray::flatten($env);
 		$env = $this->pathFinder($env);
-		foreach ($env as $key=>$value) DotArray::set($env, $key, $value);
+		foreach ($env as $key => $value) DotArray::set($env, $key, $value);
 		return $env;
 	}
 
@@ -34,30 +44,30 @@ class EnvLoader{
 					$newKey = str_replace($matches[0], '', $key);
 					$parent = $matches[1];
 				}else{
-					$newKey = str_replace('~','', $key);
+					$newKey = str_replace('~', '', $key);
 					$parent = 'root';
 				}
 				$path = [
 					'newKey' => $newKey,
 					'parent' => $parent,
-					'value' =>$value
+					'value'  => $value,
 				];
 				$resolvables[$key] = $path;
 			}
 		}
 		do{
 			$count = count($resolvables);
-			foreach ($resolvables as $key=>$resolvable){
-				if(array_key_exists($resolvable['parent'], $env)){
+			foreach ($resolvables as $key => $resolvable){
+				if (array_key_exists($resolvable['parent'], $env)){
 					$parent = $env[$resolvable['parent']];
-					if(substr($parent,-1) !== '/')$parent.='/';
-					$env[$resolvable['newKey']] = $parent.$resolvable['value'];
+					if (substr($parent, -1) !== '/') $parent .= '/';
+					$env[$resolvable['newKey']] = $parent . $resolvable['value'];
 					unset($env[$key]);
 					unset($resolvables[$key]);
 				}
 			}
-			if($count === count($resolvables)) throw new \Exception('Env path eference not found');
-		}while(count($resolvables));
+			if ($count === count($resolvables)) throw new \Exception('Env path eference not found');
+		}while (count($resolvables));
 
 		return $env;
 	}

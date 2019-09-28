@@ -1,12 +1,13 @@
-<?php namespace Eternity2\System\VhostGenerator;
+<?php namespace Eternity2\Mission\Cli\Command;
 
+use Eternity2\System\VhostGenerator\VhostGenerator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 
-class CliCommandGenerateVhost extends Command {
+class Vhost extends Command {
 	protected function configure() {
 		$this
 			->setName('generate-vhost')
@@ -16,8 +17,16 @@ class CliCommandGenerateVhost extends Command {
 
 	protected function execute(InputInterface $input, OutputInterface $output) {
 		$style = new SymfonyStyle($input, $output);
-		$vg = new VhostGenerator();
-		$vg->generate();
+
+		$source = env('vhost-generator.template');
+		$target = env('vhost-generator.output');
+
+		$template = file_get_contents($source);
+		preg_match_all('/\{\{(.*?)\}\}/', $template, $matches);
+		$keys = array_unique($matches[1]);
+		foreach ($keys as $key) $template = str_replace('{{'.$key.'}}', env($key), $template);
+		file_put_contents($target, $template);
+
 		$style->success('Done');
 	}
 

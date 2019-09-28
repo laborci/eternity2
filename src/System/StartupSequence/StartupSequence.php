@@ -17,11 +17,8 @@ class StartupSequence {
 		putenv('ini-file=' . $ini_file);
 		putenv('context=' . (http_response_code() ? 'WEB' : 'CLI'));
 
-		if (getenv('LOAD_ENV_CACHE') === 'yes') {
-			Env::Service()->store(include getenv('env-path') . getenv('env-build-file'));
-		} else {
-			Env::Service()->store(EnvLoader::load());
-		}
+		if(!EnvLoader::checkCache()) EnvLoader::save();
+		Env::Service()->store(include getenv('env-path') . getenv('env-build-file'));
 
 		setenv('root', getenv('root'));
 		setenv('context', getenv('context'));
