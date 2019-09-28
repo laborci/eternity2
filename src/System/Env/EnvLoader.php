@@ -85,7 +85,7 @@ class EnvLoader{
 					$value = array_replace_recursive($value, $this->loadYml($include));
 				}
 			}
-			if (is_array($value)) $value = array_merge_recursive(DotArray::get($env, $key), $value);
+			if (is_array($value)) $value = array_replace_recursive(DotArray::get($env, $key), $value);
 			DotArray::set($env, $key, $value);
 		}
 
