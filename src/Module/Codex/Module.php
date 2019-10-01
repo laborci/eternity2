@@ -55,7 +55,7 @@ class Module implements ModuleInterface{
 
 	public function route(Router $router){
 		// PAGES
-		$router->get("/thumbnail/*", ThumbnailResponder::class)();
+		$router->get(env('thumbnail.url').'/*', ThumbnailResponder::class)();
 		$router->get("/", Page\Index::class)();
 
 		$router->clearPipeline();

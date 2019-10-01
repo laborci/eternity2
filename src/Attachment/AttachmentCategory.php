@@ -11,8 +11,8 @@ class AttachmentCategory{
 	protected $maxFileCount = INF;
 	/** @var \Eternity2\Attachment\AttachmentStorage */
 	private $attachmentStorage;
-	/** @var \Eternity2\Attachment\AttachmentCategoryManager */
-	private $attachmentCategoryManager;
+	/** @var \Eternity2\Attachment\AttachmentCategoryManager[] */
+	private $attachmentCategoryManagers = [];
 
 	function __construct($name, AttachmentStorage $attachmentStorage){
 		$this->name = $name;
@@ -34,11 +34,9 @@ class AttachmentCategory{
 		return $this;
 	}
 
-	public function getCategoryManager(AttachmentOwnerInterface $owner = null): AttachmentCategoryManager{
-		if (is_null($this->attachmentCategoryManager)){
-			$this->attachmentCategoryManager = new AttachmentCategoryManager($this, $owner);
-		}
-		return $this->attachmentCategoryManager;
+	public function getCategoryManager(AttachmentOwnerInterface $owner): AttachmentCategoryManager{
+		if (!array_key_exists($owner->getPath(), $this->attachmentCategoryManagers)) $this->attachmentCategoryManagers[$owner->getPath()] = new AttachmentCategoryManager($this, $owner);
+		return $this->attachmentCategoryManagers[$owner->getPath()];
 	}
 
 	/** @return string[] */
