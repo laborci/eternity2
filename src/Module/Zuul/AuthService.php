@@ -50,7 +50,10 @@ class AuthService implements AuthServiceInterface{
 	}
 
 
-	public function registerAuthSession(AuthenticableInterface $user){ $this->session->setUserId($user->getId()); }
+	public function registerAuthSession(AuthenticableInterface $user){
+		$this->session->setUserId($user->getId());
+		return true;
+	}
 	protected function clearAuthSession(){ $this->session->forget(); }
 
 
