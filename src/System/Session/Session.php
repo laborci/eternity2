@@ -17,7 +17,7 @@ abstract class Session implements SharedService {
 
 	private function load() {
 		foreach ($this->fields as $field) {
-			$this->$field = array_key_exists($field, $_SESSION[$this->namespace]) ? $_SESSION[$this->namespace][$field] : null;
+			if(array_key_exists($field, $_SESSION[$this->namespace])) $this->$field = $_SESSION[$this->namespace][$field];
 		}
 	}
 
@@ -38,6 +38,7 @@ abstract class Session implements SharedService {
 		$fields = [];
 		$properties = (new \ReflectionClass($this))->getProperties(\ReflectionProperty::IS_PUBLIC | \ReflectionProperty::IS_PROTECTED);
 		foreach ($properties as $property) {
+
 			$fields[] = $property->name;
 		}
 		return $fields;

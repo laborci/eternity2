@@ -22,7 +22,9 @@ trait GhostAttachmentTrait {
 
 	public function getAttachmentCategoryManager($categoryName): AttachmentCategoryManager {
 		if (!$this->isExists()) throw new Exception('Ghost not exists yet!');
-		return static::$model->getAttachmentStorage()->getCategory($categoryName)->getCategoryManager($this);
+		/** @var \Eternity2\Ghost\Model $model */
+		$model = static::$model;
+		return $model->getAttachmentStorage()->getCategory($categoryName)->getCategoryManager($this);
 	}
 
 	/** @return \Eternity2\Attachment\AttachmentCategory[] */

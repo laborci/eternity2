@@ -9,10 +9,15 @@ class Redirect extends Segment {
 		$this->url = $this->getArgumentsBag()->get('url', '/');
 		$this->status = $this->getArgumentsBag()->get('status', 302);
 
-		if(!is_null($method)){ $this->$method(); }
+		if(!is_null($method)) $this->$method(); else $this->run();
 
 		$response = $this->getResponse();
 		$response->headers->set('Location', $this->url);
 		$response->setStatusCode($this->status);
 	}
+
+	protected function run(){
+
+	}
+
 }

@@ -20,27 +20,28 @@ class AuthService implements AuthServiceInterface{
 		$user = $this->repository->authLoginLookup($login);
 
 		if(!$user){
-			EventManager::fire(Event::EVENT_LOGIN_ERROR_USER_NOT_FOUND, $login);
+			EventManager::fire(Event::LOGIN_ERROR_USER_NOT_FOUND, $login);
 			return false;
 		}
 
 		if(!$user->checkPassword($password)){
-			EventManager::fire(Event::EVENT_LOGIN_ERROR_WRONG_PASSWORD, $login);
+			EventManager::fire(Event::LOGIN_ERROR_WRONG_PASSWORD, $login);
 			return false;
 		}
 
 		if(!(is_null($permission) || $user->checkPermission($permission))){
-			EventManager::fire(Event::EVENT_LOGIN_ERROR_WRONG_PERMISSION, $login);
+			EventManager::fire(Event::LOGIN_ERROR_WRONG_PERMISSION, $login);
 			return false;
 		}
-
 		$this->registerAuthSession($user);
 		return true;
 	}
 
 	public function logout(){ $this->clearAuthSession(); }
 
-	public function isAuthenticated(): bool{ return (bool)$this->session->getUserId(); }
+	public function isAuthenticated(): bool{
+		return (bool)$this->session->getUserId();
+	}
 	public function getAuthenticatedId(): int{ return $this->session->getUserId(); }
 
 	public function checkPermission($permission): bool{
@@ -50,8 +51,8 @@ class AuthService implements AuthServiceInterface{
 	}
 
 
-	protected function registerAuthSession(AuthenticableInterface $user){ $this->session->setUserId($user->getId()); }
-	protected function clearAuthSession(){ $this->session->forget(); }
+	public function registerAuthSession(AuthenticableInterface $user){ $this->session->setUserId($user->getId());}
+	protected function clearAuthSession(){$this->session->forget(); }
 
 
 }

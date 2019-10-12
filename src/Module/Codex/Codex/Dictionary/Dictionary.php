@@ -6,7 +6,7 @@ class Dictionary implements DictionaryInterface{
 		$this->dictionary = $dictionary;
 	}
 	public function __invoke($key):string{
-		if(!is_string($key) || !is_numeric($key)) return '';
+		if(!is_string($key) && !is_numeric($key)) return '';
 		return array_key_exists($key, $this->dictionary) ? $this->dictionary[$key] : $key;
 	}
 	public function getDictionary():array{
