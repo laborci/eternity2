@@ -27,6 +27,7 @@ class Application implements Mission, SharedService{
 		$this->application->add(new Command\ShowEnv());
 		$this->application->add(new Command\Ghost());
 		$this->application->add(new Command\Vhost());
+		$this->application->add(new Command\Dict());
 
 		$this->addCommands();
 		$this->addCustomCommands();
