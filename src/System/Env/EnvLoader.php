@@ -66,7 +66,7 @@ class EnvLoader{
 					unset($resolvables[$key]);
 				}
 			}
-			if ($count === count($resolvables)) throw new \Exception('Env path eference not found');
+			if ($count === count($resolvables)) throw new \Exception('Env path reference not found '.reset($resolvables)['parent']);
 		}while (count($resolvables));
 
 		return $env;
