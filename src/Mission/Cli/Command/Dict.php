@@ -18,77 +18,81 @@ class Dict extends Command{
 
 	protected function execute(InputInterface $input, OutputInterface $output){
 		$style = new SymfonyStyle($input, $output);
-
-		$dictspace = [];
-
 		$indir = env('dict.source');
+
+		$files = glob($indir . '*.yml');
+		foreach ($files as $file) if (is_file($file)){
+			$data = Yaml::parseFile($file);
+
+			if (array_key_exists('id', $data)){
+
+				if (!array_key_exists('id', $data)) throw new \Exception($file . ' dictionary does not contains id property');
+				if (!array_key_exists('dictionary', $data)) throw new \Exception($file . ' dictionary does not contains dictionary property');
+
+				$id = $data['id'];
+
+				if (array_key_exists('languages', $data)){
+					foreach ($data['languages'] as $lang=>$language){
+						$autovalue = array_key_exists('autovalue', $language) ? $language['autovalue'] : false;
+						$output = [];
+						if (array_key_exists('php', $language)) $output['php'] = $language['php'];
+						if (array_key_exists('jsmodule', $language)) $output['jsmodule'] = $language['jsmodule'];
+						if (array_key_exists('json', $language)) $output['json'] = $language['json'];
+						$dict = array_map(function($value) use ($lang){ return array_key_exists($lang, $value) ? $value[$lang] : null; }, $data['dictionary']);
+						$this->createDictionary($id, $output, $autovalue, $dict);
+					}
+				}else{
+					$autovalue = array_key_exists('autovalue', $data) ? $data['autovalue'] : false;
+					$output = [];
+					if (array_key_exists('php', $data)) $output['php'] = $data['php'];
+					if (array_key_exists('jsmodule', $data)) $output['jsmodule'] = $data['jsmodule'];
+					if (array_key_exists('json', $data)) $output['json'] = $data['json'];
+					$this->createDictionary($id, $output, $autovalue, $data['dictionary']);
+				}
+			}
+		}
+
+		$style->success('Done');
+	}
+
+	protected function createDictionary($id, $output, $autovalue, $dictionary){
+		foreach ($dictionary as $key => $value){
+			$oldkey = $key;
+			$key = strtoupper(str_replace(['-', '.'], '_', $key));
+			$dictionary[$key] = $value;
+			unset($dictionary[$oldkey]);
+		}
+		if ($autovalue){
+			foreach ($dictionary as $key => $value){
+				if (is_null($value)) $dictionary[$key] = str_replace("{{key}}", $key, str_replace('{{id}}', $id, $autovalue));
+			}
+		}
+
 		$phpoutdir = env('dict.php.output');
 		$jsonoutdir = env('dict.json.output');
 		$jsmoduleoutdir = env('dict.jsmodule.output');
 		$namespace = env('dict.php.namespace');
 
-		$files = glob($indir . '*.yml');
-		foreach ($files as $file) if (is_file($file)){
-			$data = Yaml::parseFile($file);
-			if (!array_key_exists('class', $data)) throw new \Exception($file . ' dictionary does not contains class property');
-			if (!array_key_exists('dictionary', $data)) throw new \Exception($file . ' dictionary does not contains dictionary property');
-			if (is_string($data['class'])){
-				$class = $data['class'];
-				if (!array_key_exists($class, $dictspace)) $dictspace[$class] = [];
-				foreach ($data['dictionary'] as $key => $value){
-					$key = strtoupper(str_replace(['-', '.'], '_', $key));
-					if (is_null($value) && array_key_exists('autovalue', $data)) $value = str_replace("{{key}}", $key, str_replace('{{class}}', $class, $data['autovalue']));
-					$dictspace[$class][$key] = $value;
-				}
-			}else{
-				$classes = $data['class'];
-				foreach ($data['dictionary'] as $key => $value){
-					$key = strtoupper(str_replace(['-', '.'], '_', $key));
 
-					foreach ($classes as $lang => $class){
-						if (is_null($value) && array_key_exists('autovalue', $data)) $dictspace[$class][$key] = str_replace("{{key}}", $key, str_replace('{{class}}', $class, $data['autovalue']));
-						if (is_array($value)){
-							if (!array_key_exists($lang, $value) || $value[$lang] === null){
-								if (array_key_exists('autovalue', $data)){
-									$dictspace[$class][$key] = str_replace("{{key}}", $key, str_replace('{{class}}', $class, $data['autovalue']));
-								}else{
-									$dictspace[$class][$key] = null;
-								}
-							}else{
-								$dictspace[$class][$key] = $value[$lang];
-							}
-						}else{
-							$dictspace[$class][$key] = $value;
-						}
+		foreach ($output as $kind => $filename){
+			switch ($kind){
+				case 'php':
+					$file = '<?php namespace ' . $namespace . ';' . "\n" .'interface ' . $filename . '{' . "\n";
+					foreach ($dictionary as $key => $value){
+						$file .= "\tconst " . $key . ' = ' . var_export($value, true) . ';' . "\n";
 					}
-				}
+					$file .= '}';
+					file_put_contents($phpoutdir . $filename . '.php', $file);
+					break;
+				case 'json':
+					file_put_contents($jsonoutdir . $filename . '.json', json_encode($dictionary, JSON_PRETTY_PRINT));
+					break;
+				case 'jsmodule':
+					$file = 'let ' . $filename . ' = ' . json_encode($dictionary, JSON_PRETTY_PRINT) . ';' . "\n" . "export default " . $filename . ";";
+					file_put_contents($jsmoduleoutdir . $filename . '.js', $file);
+					break;
 			}
 		}
-
-		if ($phpoutdir){
-			foreach ($dictspace as $class => $dict){
-				$file = '<?php namespace ' . $namespace . ';' . "\n" .
-					'interface ' . $class . '{' . "\n";
-				foreach ($dict as $key => $value){
-					$file .= "const " . $key . ' = ' . var_export($value, true) . ';' . "\n";
-				}
-				$file .= '}';
-				file_put_contents($phpoutdir . $class . '.php', $file);
-
-			}
-		}
-		foreach ($dictspace as $class => $dict){
-
-			if ($jsonoutdir){
-				file_put_contents($jsonoutdir . $class . '.json', json_encode($dict));
-			}
-			if ($jsmoduleoutdir){
-				$file = 'let ' . $class . ' = ' . json_encode($dict) . ';' . "\n" . "export default " . $class . ";";
-				file_put_contents($jsmoduleoutdir . $class . '.js', $file);
-			}
-		}
-
-		$style->success('Done');
 	}
 
 }
