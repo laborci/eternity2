@@ -1,4 +1,5 @@
 {
+    "package-checker-id": "elvis",
     "name": "laborci/eternity2",
     "description": "Eternity Framework 2",
     "keywords": [],
