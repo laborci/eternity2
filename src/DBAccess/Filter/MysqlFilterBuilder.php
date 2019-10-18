@@ -7,7 +7,9 @@ class MysqlFilterBuilder extends AbstractFilterBuilder {
 		if (!$where) return null;
 		$sql = '';
 		foreach ($where as $filterSegment) {
-			if ($filterSegment['sql'] instanceof Filter)
+			if($filterSegment['sql'] instanceof Comparison){
+				$filterSegment['sql'] = $filterSegment['sql']->getSql($this->connection);
+			}elseif ($filterSegment['sql'] instanceof Filter)
 				$filterSegment['sql'] = $filterSegment['sql']->getSql($this->connection);
 			else if (is_array($filterSegment['sql']))
 				$filterSegment['sql'] = $this->getSqlFromArray($filterSegment['sql']);

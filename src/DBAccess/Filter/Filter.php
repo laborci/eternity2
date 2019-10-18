@@ -3,8 +3,11 @@
 
 use Eternity2\DBAccess\PDOConnection\AbstractPDOConnection;
 
-class Filter {
+function field($field){
+	return new Comparison($field);
+}
 
+class Filter {
 	protected function __construct() { }
 
 	protected $where = [];
@@ -25,12 +28,12 @@ class Filter {
 		return $array;
 	}
 
-	static public function where(string $sql, ...$sqlParams): self {
+	static public function where( $sql, ...$sqlParams): self {
 		$filter = new static();
 		return $filter->addWhere('WHERE', $sql, $sqlParams);
 	}
 
-	static public function whereIf(bool $condition, string $sql, ...$sqlParams): self {
+	static public function whereIf(bool $condition,  $sql, ...$sqlParams): self {
 		$filter = new static();
 		return $condition ? $filter->addWhere('WHERE', $sql, $sqlParams) : $filter;
 	}
@@ -53,4 +56,6 @@ class Filter {
 	}
 
 	public function getSql(AbstractPDOConnection $connection): string { return $connection->createFilterBuilder()->getSql($this->where); }
+
+	public static function f(string $field){return new Comparison($field);}
 }
