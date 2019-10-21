@@ -2,6 +2,7 @@
 
 use CaseHelper\CaseHelperFactory;
 use Eternity2\DBAccess\PDOConnection\AbstractPDOConnection;
+use Eternity2\Ghost\Field;
 use Eternity2\Ghost\Model;
 use Eternity2\Ghost\Relation;
 use Eternity2\System\ServiceManager\Service;
@@ -147,7 +148,40 @@ class Creator{
 		$attachmentConstants = [];
 
 		foreach ($model->fields as $field){
+
+
+			$type = '';
+			switch ($field->type){
+				case Field::TYPE_BOOL:
+					$type = 'boolean';
+					break;
+				case Field::TYPE_DATE:
+					$type = '\Valentine\Date';
+					break;
+				case Field::TYPE_DATETIME:
+					$type = '\DateTime';
+					break;
+				case Field::TYPE_ENUM:
+				case Field::TYPE_STRING:
+					$type = 'string';
+					break;
+				case Field::TYPE_SET:
+					$type = 'array';
+					break;
+				case Field::TYPE_INT:
+				case Field::TYPE_ID:
+					$type = 'int';
+					break;
+				case Field::TYPE_FLOAT:
+					$type = 'float';
+					break;
+			}
+			$properties[] = "\t" . "/** @var {$type} {$field->name} */";
 			$properties[] = "\t" . ($field->protected ? 'protected' : 'public') . " \${$field->name};";
+
+
+
+
 			if ($field->protected){
 
 				if ($field->setter !== false && $field->getter !== false)
@@ -263,12 +297,12 @@ class Creator{
 
 		$dbtype = $db_field['Type'];
 
-		if ($db_field['Comment'] == 'json') return 'Field::TYPE_JSON';
+		if ($db_field['CommentService'] == 'json') return 'Field::TYPE_JSON';
 		if ($dbtype == 'tinyint(1)') return 'Field::TYPE_BOOL';
 		if ($dbtype == 'date') return 'Field::TYPE_DATE';
 		if ($dbtype == 'datetime') return 'Field::TYPE_DATETIME';
 		if ($dbtype == 'float') return 'Field::TYPE_FLOAT';
-		if (strpos($dbtype, 'int(11) unsigned') === 0 && (substr($fieldName, -2) == 'Id' || $fieldName == 'id' || $db_field['Comment'] == 'id')) return 'Field::TYPE_ID';
+		if (strpos($dbtype, 'int(11) unsigned') === 0 && (substr($fieldName, -2) == 'Id' || $fieldName == 'id' || $db_field['CommentService'] == 'id')) return 'Field::TYPE_ID';
 		if (strpos($dbtype, 'int') === 0) return 'Field::TYPE_ID';
 		if (strpos($dbtype, 'tinyint') === 0) return 'Field::TYPE_INT';
 		if (strpos($dbtype, 'smallint') === 0) return 'Field::TYPE_INT';
