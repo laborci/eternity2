@@ -59,6 +59,10 @@ class Dict extends Command{
 		foreach ($dictionary as $key => $value){
 			$oldkey = $key;
 			$key = strtoupper(str_replace(['-', '.'], '_', $key));
+			if(substr($key,0,1) === '~'){
+				$key = substr($key, 1);
+				$value = env($value);
+			}
 			$dictionary[$key] = $value;
 			unset($dictionary[$oldkey]);
 		}
