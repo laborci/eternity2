@@ -33,8 +33,8 @@ class Comparison{
 	}
 
 	public function getSql(AbstractPDOConnection $connection){
-		$quoted = $connection->quoteValue($this->value);
 		$sql = '';
+
 		switch ($this->operator){
 			case self::OPERATOR_IS:
 				$sql = " = {$connection->quoteValue($this->value)}";
@@ -61,7 +61,7 @@ class Comparison{
 				$sql = " != {$connection->quoteValue($this->value)}";
 				break;
 			case self::OPERATOR_IN:
-				$sql = " IN ({$connection->quoteArray($this->value)})";
+				$sql = " IN (".join(',', $connection->quoteArray($this->value)).")";
 				break;
 			case self::OPERATOR_LIKE:
 				$sql = " LIKE {$connection->quoteValue($this->value)}";

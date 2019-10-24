@@ -297,7 +297,7 @@ class Creator{
 
 		$dbtype = $db_field['Type'];
 
-		if ($db_field['CommentService'] == 'json') return 'Field::TYPE_JSON';
+		if ($db_field['Comment'] == 'json') return 'Field::TYPE_JSON';
 		if ($dbtype == 'tinyint(1)') return 'Field::TYPE_BOOL';
 		if ($dbtype == 'date') return 'Field::TYPE_DATE';
 		if ($dbtype == 'datetime') return 'Field::TYPE_DATETIME';
