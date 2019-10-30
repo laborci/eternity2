@@ -1,6 +1,5 @@
 <?php namespace Eternity2\Mission\Cli\Command;
 
-use Eternity2\System\VhostGenerator\VhostGenerator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -72,28 +71,25 @@ class Dict extends Command{
 			}
 		}
 
-		$phpoutdir = env('dict.php.output');
-		$jsonoutdir = env('dict.json.output');
-		$jsmoduleoutdir = env('dict.jsmodule.output');
-		$namespace = env('dict.php.namespace');
-
-
-		foreach ($output as $kind => $filename){
+		foreach ($output as $kind => $target){
 			switch ($kind){
 				case 'php':
-					$file = '<?php namespace ' . $namespace . ';' . "\n" .'interface ' . $filename . '{' . "\n";
+					$file = '<?php namespace ' . $target['namespace'] . ';' . "\n" .'interface ' . $target['class'] . '{' . "\n";
 					foreach ($dictionary as $key => $value){
 						$file .= "\tconst " . $key . ' = ' . var_export($value, true) . ';' . "\n";
 					}
 					$file .= '}';
-					file_put_contents($phpoutdir . $filename . '.php', $file);
+					if(!is_dir(env('root').'/'.$target['path'])) mkdir(env('root').'/'.$target['path'], 0777, true);
+					file_put_contents(env('root').'/'.$target['path'] .'/'. $target['class'] . '.php', $file);
 					break;
 				case 'json':
-					file_put_contents($jsonoutdir . $filename . '.json', json_encode($dictionary, JSON_PRETTY_PRINT));
+					if(!is_dir(env('root').'/'.$target['path'])) mkdir(env('root').'/'.$target['path'], 0777, true);
+					file_put_contents(env('root').'/'.$target['path'] .'/'. $target['file'] , json_encode($dictionary, JSON_PRETTY_PRINT));
 					break;
 				case 'jsmodule':
-					$file = 'let ' . $filename . ' = ' . json_encode($dictionary, JSON_PRETTY_PRINT) . ';' . "\n" . "export default " . $filename . ";";
-					file_put_contents($jsmoduleoutdir . $filename . '.js', $file);
+					$file = 'let ' . $target['name'] . ' = ' . json_encode($dictionary, JSON_PRETTY_PRINT) . ';' . "\n" . "export default " . $target['name'] . ";";
+					if(!is_dir(env('root').'/'.$target['path'])) mkdir(env('root').'/'.$target['path'], 0777, true);
+					file_put_contents(env('root').'/'.$target['path'] .'/'. $target['file'] , $file);
 					break;
 			}
 		}

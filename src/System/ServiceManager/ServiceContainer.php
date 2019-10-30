@@ -30,7 +30,7 @@ class ServiceContainer{
 				if ($reflection->implementsInterface(SharedService::class)) $serviceFactory->shared();
 			}catch (\Exception $e){
 				if ($optional) return null;
-				else trigger_error('Service or Class as a service "' . $name . '" not found');
+				else trigger_error('Service or Class as a service "' . $name . '" not found. Exception:' . $e->getMessage());
 			}
 		}
 		return $serviceFactory->get();
