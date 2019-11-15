@@ -1,15 +1,11 @@
 <?php namespace Eternity2\Module\Codex\Page;
 
-
 use Eternity2\Module\Codex\CodexWhoAmIInterface;
 use Eternity2\Module\Codex\Module;
 use Eternity2\Module\SmartPageResponder\Responder\SmartPageResponder;
 use Eternity2\System\Module\ModuleLoader;
-use Eternity2\Module\Zuul\Interfaces\WhoAmIInterface;
 
 /**
- * @css /~admin/css/style.css
- * @js  /~admin/js/app.js
  * @title Admin
  * @template "@codex/Index.twig"
  */
@@ -20,10 +16,12 @@ class Index extends SmartPageResponder {
 	/** @var \Eternity2\Module\Codex\Module  */
 	protected $module;
 
-	public function __construct(CodexWhoAmIInterface $whoAmI) {
+	public function __construct(CodexWhoAmIInterface $whoAmI, ModuleLoader $moduleLoader) {
 		parent::__construct();
+		$this->module = $moduleLoader->get(Module::class);
+		$this->css = [$this->module->getEnv()['frontend-prefix'].'app.css'];
+		$this->js = [$this->module->getEnv()['frontend-prefix'].'app.js'];
 		$this->whoAmI = $whoAmI;
-		$this->module = ModuleLoader::Service()->get(Module::class);
 		$this->title = $this->module->getAdmin()['title'];
 	}
 

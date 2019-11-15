@@ -1,6 +1,5 @@
 <?php namespace Eternity2\Module\Codex;
 
-use Application\Service\Auth\CodexWhoAmI;
 use Eternity2\Module\Codex\Action\CodexAttachmentCopy;
 use Eternity2\Module\Codex\Action\CodexAttachmentDelete;
 use Eternity2\Module\Codex\Action\CodexAttachmentGet;
@@ -26,6 +25,7 @@ class Module implements ModuleInterface{
 
 	/** @var \Eternity2\Module\Codex\Codex\AdminRegistry */
 	private $adminRegistry;
+	protected $env;
 
 	public function __construct(AdminRegistry $adminRegistry){
 		$this->adminRegistry = $adminRegistry;
@@ -35,27 +35,30 @@ class Module implements ModuleInterface{
 	public function getMenu(){ return $this->menu; }
 
 	protected $admin = [
-		'title'                => 'Codex2',
-		'icon'                 => 'fal fa-infinite',
-		'login-placeholder'    => 'e-mail',
+		'title'             => 'Codex2',
+		'icon'              => 'fal fa-infinite',
+		'login-placeholder' => 'e-mail',
 	];
 	public function getAdmin(): array{ return $this->admin; }
 
-	public function __invoke($env){
+	public function getEnv(){ return $this->env; }
 
+	public function __invoke($env){
+		$this->env = $env;
 		ServiceContainer::shared(CodexWhoAmIInterface::class)->service($env['services']['WhoAmI']);
 
 		if (array_key_exists('menu', $env)) $this->menu = $env['menu'];
 		if (array_key_exists('admin', $env)) $this->admin = $env['admin'];
 		EventManager::listen(Application::EVENT_ROUTING_FINISHED, [$this, 'route']);
 		EventManager::listen(Twigger::EVENT_TWIG_ENVIRONMENT_CREATED, function (){
-			Twigger::Service()->addPath(__DIR__ . '/Page/@template/', 'codex');
+			Twigger::Service()->addPath(__DIR__ . '/:frontend/templates/', 'codex');
 		});
+		if (array_key_exists('codex-forms', $env)) foreach ($env['codex-forms'] as $form) $this->register($form);
 	}
 
 	public function route(Router $router){
 		// PAGES
-		$router->get(env('thumbnail.url').'/*', ThumbnailResponder::class)();
+		$router->get(env('thumbnail.url') . '/*', ThumbnailResponder::class)();
 		$router->get("/", Page\Index::class)();
 
 		$router->clearPipeline();

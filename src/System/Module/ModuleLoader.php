@@ -33,7 +33,7 @@ class ModuleLoader implements SharedService{
 		if (array_key_exists($key, $this->modules)) throw new \Exception('Module already loaded: ' . $key);
 		$this->modules[$key] = $moduleInstance;
 		$this->modules[$module] = $moduleInstance;
-		$config = array_replace_recursive($moduleConfig, $config);
+		if (is_array($config)) $config = array_replace_recursive($moduleConfig, $config);
 		$moduleInstance($config);
 	}
 

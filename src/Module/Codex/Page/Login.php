@@ -5,8 +5,6 @@ use Eternity2\Module\SmartPageResponder\Responder\SmartPageResponder;
 use Eternity2\System\Module\ModuleLoader;
 
 /**
- * @css       /~admin/css/style.css
- * @js        /~admin/js/login.js
  * @title     Admin
  * @bodyclass login
  * @template "@codex/Login.twig"
@@ -16,9 +14,11 @@ class Login extends SmartPageResponder{
 	/** @var \Eternity2\Module\Codex\Module */
 	protected $module;
 
-	public function __construct(){
+	public function __construct(ModuleLoader $moduleLoader) {
 		parent::__construct();
-		$this->module = ModuleLoader::Service()->get(Module::class);
+		$this->module = $moduleLoader->get(Module::class);
+		$this->css = [$this->module->getEnv()['frontend-prefix'].'login.css'];
+		$this->js = [$this->module->getEnv()['frontend-prefix'].'login.js'];
 		$this->title = $this->module->getAdmin()['title'];
 	}
 
