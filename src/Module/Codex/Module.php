@@ -51,7 +51,7 @@ class Module implements ModuleInterface{
 		if (array_key_exists('admin', $env)) $this->admin = $env['admin'];
 		EventManager::listen(Application::EVENT_ROUTING_FINISHED, [$this, 'route']);
 		EventManager::listen(Twigger::EVENT_TWIG_ENVIRONMENT_CREATED, function (){
-			Twigger::Service()->addPath(__DIR__ . '/:frontend/templates/', 'codex');
+			Twigger::Service()->addPath(__DIR__ . '/~twig/', 'codex');
 		});
 		if (array_key_exists('codex-forms', $env)) foreach ($env['codex-forms'] as $form) $this->register($form);
 	}
