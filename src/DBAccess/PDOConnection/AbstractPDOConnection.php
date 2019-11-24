@@ -2,7 +2,7 @@
 
 use PDO;
 
-abstract class AbstractPDOConnection extends \PDO implements PDOConnectionInterface {
+abstract class AbstractPDOConnection extends \PDO implements PDOConnectionInterface{
 
 	/** @var \Eternity2\DBAccess\SqlLogHookInterface */
 	protected $sqlLogHook;

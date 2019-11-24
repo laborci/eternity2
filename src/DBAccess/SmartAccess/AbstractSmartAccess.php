@@ -8,8 +8,11 @@ use PDO;
 abstract class AbstractSmartAccess {
 	/** @var \PDO */
 	private $connection;
+
 	/** @var string */
 	private $database;
+
+	public function getDatabase(){return $this->database;}
 
 	public function __construct(MysqlPDOConnection $connection) {
 		$this->connection = $connection;
