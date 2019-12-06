@@ -20,5 +20,10 @@ abstract class TwigPageResponder extends PageResponder{
 	}
 	protected function respond(): string{ return Twigger::Service()->render($this->template, $this->createViewModel()); }
 	protected function createViewModel(){ return $this->getDataBag()->all(); }
+	protected function setViewModel($name, $value = null){
+		if(is_array($name))foreach($name as $key=>$value){
+			$this->getDataBag()->set($key, $value);
+		}else $this->getDataBag()->set($name, $value);
+	}
 
 }

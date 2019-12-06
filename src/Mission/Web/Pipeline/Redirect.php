@@ -2,6 +2,8 @@
 
 class Redirect extends Segment {
 
+	const ARG_URL='url';
+
 	protected $url;
 	protected $status;
 
