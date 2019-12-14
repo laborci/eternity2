@@ -18,16 +18,21 @@ class Vhost extends Command {
 	protected function execute(InputInterface $input, OutputInterface $output) {
 		$style = new SymfonyStyle($input, $output);
 
-		$source = env('vhost-generator.template');
-		$target = env('vhost-generator.output');
+		$files = env('vhost-generator');
+		
+		foreach ($files as $name=>$file){
+			$source = $file['template'];
+			$target = $file['output'];
 
-		$template = file_get_contents($source);
-		preg_match_all('/\{\{(.*?)\}\}/', $template, $matches);
-		$keys = array_unique($matches[1]);
-		foreach ($keys as $key) $template = str_replace('{{'.$key.'}}', env($key), $template);
-		file_put_contents($target, $template);
+			$template = file_get_contents($source);
+			preg_match_all('/\{\{(.*?)\}\}/', $template, $matches);
+			$keys = array_unique($matches[1]);
+			foreach ($keys as $key) $template = str_replace('{{' . $key . '}}', env($key), $template);
+			file_put_contents($target, $template);
+			$style->success($name.' Done');
 
-		$style->success('Done');
+		}
+
 	}
 
 }
