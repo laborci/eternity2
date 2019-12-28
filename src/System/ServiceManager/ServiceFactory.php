@@ -65,7 +65,7 @@ class ServiceFactory{
 			if(!is_null($constructor)) {
 				$parameters = $constructor->getParameters();
 				foreach ($parameters as $parameter) {
-					$arguments[] = ServiceContainer::get(strval($parameter->getType()));
+					$arguments[] = @ServiceContainer::get($parameter->getType()->getName());
 				}
 			}
 			$service = new $class(...$arguments);

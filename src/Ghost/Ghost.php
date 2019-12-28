@@ -6,6 +6,7 @@ use JsonSerializable;
 
 /**
  * @property-read int id
+ * @property-read \Eternity2\Ghost\Model $model
  */
 abstract class Ghost implements JsonSerializable, AttachmentOwnerInterface{
 
@@ -24,11 +25,14 @@ abstract class Ghost implements JsonSerializable, AttachmentOwnerInterface{
 	private static function model(): ?Model{ return static::$model; }
 	private static function setModel(Model $model){ return static::$model = $model; }
 
-	static final public function init(){
+	static final public function init(callable $decoratorFunction = null){
 		if (static::model() === null){
 			$model = static::createModel();
 			static::setModel($model);
 		}
+		$decorator = new Decorator(static::$model);
+		if(is_callable($decoratorFunction)) $decoratorFunction($decorator);
+		return $decorator;
 	}
 
 	abstract static protected function createModel(): Model;
@@ -79,7 +83,7 @@ abstract class Ghost implements JsonSerializable, AttachmentOwnerInterface{
 	public function __call(string $name, $arguments){
 		$relation = array_key_exists($name, static::model()->relations) ? static::model()->relations[$name] : null;
 		if ($relation && $relation->type === Relation::TYPE_HASMANY){
-			list($order, $limit, $offset) = array_pad($arguments, 3, null);
+			[$order, $limit, $offset] = array_pad($arguments, 3, null);
 			return $relation->get($this, $order, $limit, $offset);
 		}
 		return null;

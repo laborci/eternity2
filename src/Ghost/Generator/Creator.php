@@ -26,16 +26,14 @@ class Creator{
 	protected $output;
 	/** @var Application */
 	protected $application;
+	/** @var array|mixed */
+	protected $ghosts;
 
 	public function __construct(){
-		$this->ghostPath = env('ghost.generator.ghost-path');
-		$this->ghostNamespace = env('ghost.generator.ghost-namespace');
+		$this->ghostPath = env('ghost.ghost-path');
+		$this->ghostNamespace = env('ghost.ghost-namespace');
+		$this->ghosts = env('ghost.ghosts');
 	}
-
-	const ACTION_CANCEL = 0;
-	const ACTION_UPDATE_ALL = 1;
-	const ACTION_UPDATE = 2;
-	const ACTION_CREATE = 3;
 
 	public function execute(InputInterface $input, OutputInterface $output, Application $application){
 
@@ -46,93 +44,22 @@ class Creator{
 
 		$this->style->title('GHOST CREATOR');
 
-		$name = $input->getArgument('name');
-		$table = $input->getArgument('table');
-		$database = $input->getArgument('database');
-		$name = ucfirst($name);
-		$table = is_null($table) ? CaseHelperFactory::make(CaseHelperFactory::INPUT_TYPE_CAMEL_CASE)->toSnakeCase($name) : $table;
-		$database = is_null($database) ? env('ghost.default-database') : $database;
+		foreach ($this->ghosts as $name => $properties){
+			$database = is_array($properties) && array_key_exists('database', $properties) ? $properties['database'] : env('ghost.default-database');
+			$table = is_array($properties) && array_key_exists('table', $properties) ? $properties['table'] : CaseHelperFactory::make(CaseHelperFactory::INPUT_TYPE_CAMEL_CASE)->toSnakeCase($name);
 
-		if ($name){
-			$filesExists = false;
-			$this->style->writeln('Check existing files');
-			foreach (["{$this->ghostPath}/{$name}.php", "{$this->ghostPath}/Helper/Ghost{$name}.php"] as $file){
-				$this->style->write(" - {$file}");
-				if (is_file($file)){
-					$filesExists = true;
-					$this->style->writeln(' - [EXISTS]');
-				}else $this->style->writeln(' - [NOT FOUND]');
-			}
-			if ($filesExists){
-				$action = $this->menu("Files for ({$name}) Ghost are exists", [
-					self::ACTION_UPDATE => "Update",
-					self::ACTION_CREATE => "Create {$name} as a new Ghost (delete previous implementation)",
-					self::ACTION_CANCEL => "Cancel",
-				], self::ACTION_UPDATE);
-			}else $action = self::ACTION_CREATE;
-		}else{
-			$action = self::ACTION_UPDATE_ALL;
-		}
+			$this->style->section($name . ' Ghost');
+			$this->generateEntity($name, $table, $database);
+			$this->generateGhostFromDatabase($name, $table, $database);
+			$this->updateGhost($name);
 
-		switch ($action){
-			case self::ACTION_UPDATE_ALL:
-				$this->updateAll();
-				break;
-			case self::ACTION_CREATE:
-				$this->create($name, $table, $database);
-				break;
-			case self::ACTION_UPDATE:
-				$this->update($name, $table, $database);
-				break;
 		}
 		$this->style->success('done.');
 	}
 
-	protected function create($name, $table, $database){
-		$this->style->section($name . ' Ghost');
-		$this->purge($name);
-		$this->generateGhost($name, $table, $database);
-		$this->generateGhostHelperFromDatabase($name, $table, $database);
-		$this->updateGhostHelper($name);
-	}
+	protected function updateGhost($name){
 
-	protected function update($name, $table, $database){
-		$this->style->section($name . ' Ghost');
-		$this->generateGhostHelperFromDatabase($name, $table, $database);
-		$this->updateGhostHelper($name);
-	}
-
-	protected function updateAll(){
-		$cwd = getcwd();
-		chdir($this->ghostPath);
-		$files = glob('*.php');
-		chdir($cwd);
-		foreach ($files as $file){
-			$name = substr($file, 0, -4);
-			$ghostClass = $this->ghostNamespace . '\\' . $name;
-			/** @var Model $model */
-			$model = $ghostClass::$model;
-			$this->update($name, $model->table, $model->connectionName);
-		}
-	}
-
-	protected function purge($name){
-		$this->style->writeln("Remove existing files");
-		foreach ([
-			         "{$this->ghostPath}/Helper/Ghost{$name}.php",
-			         "{$this->ghostPath}/{$name}.php",
-		         ] as $file){
-			if (file_exists($file)){
-				$this->style->write("- {$file}");
-				unlink($file);
-				$this->style->writeln(' - [OK]');
-			}
-		}
-	}
-
-	protected function updateGhostHelper($name){
-
-		$file = "{$this->ghostPath}/Helper/Ghost{$name}.php";
+		$file = "{$this->ghostPath}/{$name}.ghost.php";
 
 		$this->style->writeln("Update Helper");
 		$this->style->write("- Open Ghost ({$name}) model");
@@ -148,7 +75,6 @@ class Creator{
 		$attachmentConstants = [];
 
 		foreach ($model->fields as $field){
-
 
 			$type = '';
 			switch ($field->type){
@@ -179,9 +105,6 @@ class Creator{
 			$properties[] = "\t" . "/** @var {$type} {$field->name} */";
 			$properties[] = "\t" . ($field->protected ? 'protected' : 'public') . " \${$field->name};";
 
-
-
-
 			if ($field->protected){
 
 				if ($field->setter !== false && $field->getter !== false)
@@ -201,7 +124,7 @@ class Creator{
 
 		foreach ($model->getAttachmentStorage()->getCategories() as $category){
 			$annotations[] = ' * @property-read AttachmentCategoryManager $' . $category->getName();
-			$attachmentConstants[] = "\tconst A_".strtoupper($category->getName()).' = "'.$category->getName().'";';
+			$attachmentConstants[] = "\tconst A_" . strtoupper($category->getName()) . ' = "' . $category->getName() . '";';
 
 		}
 
@@ -228,9 +151,9 @@ class Creator{
 		$this->style->writeln(" - [OK]");
 	}
 
-	protected function generateGhostHelperFromDatabase($name, $table, $database){
+	protected function generateGhostFromDatabase($name, $table, $database){
 
-		$file = "{$this->ghostPath}/Helper/Ghost{$name}.php";
+		$file = "{$this->ghostPath}/{$name}.ghost.php";
 
 		$this->style->writeln("Connecting to database");
 		$this->style->write("- ${database}");
@@ -249,7 +172,7 @@ class Creator{
 		$fieldConstants = [];
 		foreach ($fields as $field){
 			$addFields[] = "\t\t" . '$model->addField("' . $field['Field'] . '", ' . $this->fieldType($field, $field['Field']) . ');';
-			$fieldConstants[] = "\t" . 'const F_' . strtoupper($field['Field']) .' = "' . $field['Field'] . '";';
+			$fieldConstants[] = "\t" . 'const F_' . strtoupper($field['Field']) . ' = "' . $field['Field'] . '";';
 			if (strpos($field['Type'], 'set') === 0 || strpos($field['Type'], 'enum') === 0){
 				$values = $smartAccess->getEnumValues($table, $field['Field']);
 				foreach ($values as $value){
@@ -259,7 +182,7 @@ class Creator{
 		}
 		$addFields[] = "\t\t" . '$model->protectField("id");';
 
-		$template = file_get_contents(__DIR__ . '/ghost_helper.txt');
+		$template = file_get_contents(__DIR__ . '/ghost.txt');
 
 		$template = str_replace('{{name}}', $name, $template);
 		$template = str_replace('{{table}}', $table, $template);
@@ -275,7 +198,7 @@ class Creator{
 		$this->style->writeln(" - [OK]");
 	}
 
-	protected function generateGhost($name, $table, $database){
+	protected function generateEntity($name, $table, $database){
 		$this->style->writeln("Generate Ghost");
 		$file = "{$this->ghostPath}/{$name}.php";
 		$this->style->write("- {$file}");
@@ -283,13 +206,12 @@ class Creator{
 		if (file_exists($file)){
 			$this->style->writeln(" - [ALREADY EXISTS]");
 		}else{
-			$template = file_get_contents(__DIR__ . '/ghost.txt');
+			$template = file_get_contents(__DIR__ . '/entity.txt');
 			$template = str_replace('{{namespace}}', $this->ghostNamespace, $template);
 			$template = str_replace('{{name}}', $name, $template);
 			$template = str_replace('{{table}}', $table, $template);
 			file_put_contents($file, $template);
 			$this->style->writeln(" - [OK]");
-
 		}
 	}
 
@@ -302,7 +224,7 @@ class Creator{
 		if ($dbtype == 'date') return 'Field::TYPE_DATE';
 		if ($dbtype == 'datetime') return 'Field::TYPE_DATETIME';
 		if ($dbtype == 'float') return 'Field::TYPE_FLOAT';
-		if (strpos($dbtype, 'int(11) unsigned') === 0 && (substr($fieldName, -2) == 'Id' || $fieldName == 'id' || $db_field['CommentService'] == 'id')) return 'Field::TYPE_ID';
+		if (strpos($dbtype, 'int(11) unsigned') === 0 && (substr($fieldName, -2) == 'Id' || $fieldName == 'id' || $db_field['Comment'] == 'id')) return 'Field::TYPE_ID';
 		if (strpos($dbtype, 'int') === 0) return 'Field::TYPE_ID';
 		if (strpos($dbtype, 'tinyint') === 0) return 'Field::TYPE_INT';
 		if (strpos($dbtype, 'smallint') === 0) return 'Field::TYPE_INT';

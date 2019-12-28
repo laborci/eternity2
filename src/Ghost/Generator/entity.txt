@@ -1,0 +1,11 @@
+<?php
+namespace {{namespace}};
+include '{{name}}.ghost.php';
+
+use Eternity2\Ghost\Decorator;
+
+class {{name}} extends {{name}}Ghost{
+
+}
+
+{{name}}::init(function (Decorator $decorator){});

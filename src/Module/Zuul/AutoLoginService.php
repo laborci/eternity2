@@ -36,6 +36,7 @@ class AutoLoginService implements SharedService{
 			$this->autoLoginRepository->delete($token);
 			return false;
 		}
+
 		$this->autoLoginRepository->update($token);
 		$this->authService->registerAuthSession($user);
 		EventManager::Service()->fireEvent(Event::AUTOLOGIN, $user);
