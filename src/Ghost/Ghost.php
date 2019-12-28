@@ -67,6 +67,7 @@ abstract class Ghost implements JsonSerializable, AttachmentOwnerInterface{
 		return
 			array_key_exists($name, static::model()->fields) ||
 			array_key_exists($name, static::model()->relations) ||
+			array_key_exists($name, static::model()->virtuals) ||
 			static::model()->getAttachmentStorage()->hasCategory($name)
 			;
 	}

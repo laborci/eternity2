@@ -106,7 +106,6 @@ class Creator{
 			$properties[] = "\t" . ($field->protected ? 'protected' : 'public') . " \${$field->name};";
 
 			if ($field->protected){
-
 				if ($field->setter !== false && $field->getter !== false)
 					$annotations[] = " * @property $" . $field->name;
 				elseif ($field->getter !== false)
@@ -120,6 +119,19 @@ class Creator{
 				if (is_string($field->setter))
 					$getterSetter[] = "\t" . 'abstract protected function ' . $field->setter . '($value);';
 			}
+		}
+
+		foreach ($model->virtuals as $field){
+			if ($field['setter'] !== false && $field['getter'] !== false)
+				$annotations[] = " * @property $" . $field['name'];
+			elseif ($field['getter'] !== false)
+				$annotations[] = " * @property-read $" . $field['name'];
+			elseif ($field['setter'] !== false)
+				$annotations[] = " * @property-write $" . $field['name'];
+			if (is_string($field['getter']))
+				$getterSetter[] = "\t" . 'abstract protected function ' . $field['getter'] . '();';
+			if (is_string($field['setter']))
+				$getterSetter[] = "\t" . 'abstract protected function ' . $field['setter'] . '($value);';
 		}
 
 		foreach ($model->getAttachmentStorage()->getCategories() as $category){
