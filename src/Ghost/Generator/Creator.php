@@ -48,7 +48,7 @@ class Creator{
 			$database = is_array($properties) && array_key_exists('database', $properties) ? $properties['database'] : env('ghost.default-database');
 			$table = is_array($properties) && array_key_exists('table', $properties) ? $properties['table'] : CaseHelperFactory::make(CaseHelperFactory::INPUT_TYPE_CAMEL_CASE)->toSnakeCase($name);
 
-			$this->style->section($name . ' Ghost');
+			$this->style->section($name);
 			$this->generateEntity($name, $table, $database);
 			$this->generateGhostFromDatabase($name, $table, $database);
 			$this->updateGhost($name);
@@ -61,10 +61,8 @@ class Creator{
 
 		$file = "{$this->ghostPath}/{$name}.ghost.php";
 
-		$this->style->writeln("Update Helper");
-		$this->style->write("- Open Ghost ({$name}) model");
+		$this->style->write("Update Ghost ");
 		$ghostClass = $this->ghostNamespace . '\\' . $name;
-		$this->style->writeln(" - [OK]");
 
 		/** @var Model $model */
 		$model = $ghostClass::$model;
@@ -136,7 +134,7 @@ class Creator{
 
 		foreach ($model->getAttachmentStorage()->getCategories() as $category){
 			$annotations[] = ' * @property-read AttachmentCategoryManager $' . $category->getName();
-			$attachmentConstants[] = "\tconst A_" . strtoupper($category->getName()) . ' = "' . $category->getName() . '";';
+			$attachmentConstants[] = "\tconst A_" . $category->getName() . ' = "' . $category->getName() . '";';
 
 		}
 
@@ -167,14 +165,14 @@ class Creator{
 
 		$file = "{$this->ghostPath}/{$name}.ghost.php";
 
-		$this->style->writeln("Connecting to database");
+		$this->style->write("Connecting to database ");
 		$this->style->write("- ${database}");
 		/** @var AbstractPDOConnection $connection */
 		$connection = ServiceContainer::get($database);
 		$smartAccess = $connection->createSmartAccess();
 		$this->style->writeln(" - [OK]");
 
-		$this->style->writeln("Fetching table information");
+		$this->style->write("Fetching table information ");
 		$this->style->write("- ${table}");
 		$fields = $smartAccess->getFieldData($table);
 		$this->style->writeln(" - [OK]");
@@ -184,11 +182,11 @@ class Creator{
 		$fieldConstants = [];
 		foreach ($fields as $field){
 			$addFields[] = "\t\t" . '$model->addField("' . $field['Field'] . '", ' . $this->fieldType($field, $field['Field']) . ');';
-			$fieldConstants[] = "\t" . 'const F_' . strtoupper($field['Field']) . ' = "' . $field['Field'] . '";';
+			$fieldConstants[] = "\t" . 'const F_' . $field['Field'] . ' = "' . $field['Field'] . '";';
 			if (strpos($field['Type'], 'set') === 0 || strpos($field['Type'], 'enum') === 0){
 				$values = $smartAccess->getEnumValues($table, $field['Field']);
 				foreach ($values as $value){
-					$constants[] = "\t" . 'const ' . strtoupper($field['Field']) . '_' . strtoupper($value) . ' = "' . $value . '";';
+					$constants[] = "\t" . 'const V_' . $field['Field'] . '_' . $value . ' = "' . $value . '";';
 				}
 			}
 		}
@@ -204,14 +202,14 @@ class Creator{
 		$template = str_replace('{{constants}}', join("\n", $constants), $template);
 		$template = str_replace('{{fieldConstants}}', join("\n", $fieldConstants), $template);
 
-		$this->style->writeln("Generate Helper from database");
+		$this->style->write("Generate Ghost ");
 		$this->style->write("- {$file}");
 		file_put_contents($file, $template);
 		$this->style->writeln(" - [OK]");
 	}
 
 	protected function generateEntity($name, $table, $database){
-		$this->style->writeln("Generate Ghost");
+		$this->style->write("Generate Entity ");
 		$file = "{$this->ghostPath}/{$name}.php";
 		$this->style->write("- {$file}");
 

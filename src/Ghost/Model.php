@@ -24,11 +24,17 @@ class Model{
 	public $connectionName;
 	/** @var array */
 	public $virtuals = [];
+	/** @var array */
+	public $getters = [];
+	/** @var array */
+	public $setters = [];
 
 	/** @var bool */
 	protected $mutable = true;
 
-	public function __construct($connectionName, $table, $ghost){
+	public function __construct($ghost){
+		$table = $ghost::Table;
+		$connectionName = $ghost::ConnectionName;
 		$this->connection = ServiceContainer::get($connectionName);
 		$this->table = $table;
 		$this->ghost = $ghost;
@@ -44,6 +50,8 @@ class Model{
 	public function protectField($field, $getter = null, $setter = false){
 		if ($getter === true) $getter = 'get' . ucfirst($field);
 		if ($setter === true || $setter === null) $setter = 'set' . ucfirst($field);
+		if ($getter !== false) $this->getters[$field] = ['type' => 'virtual', 'method' => $getter];
+		if ($setter !== false) $this->setters[$field] = ['method' => $getter];
 		$this->fields[$field]->protect($getter, $setter);
 	}
 
@@ -55,7 +63,9 @@ class Model{
 	public function virtual($field, $getter = true, $setter = false){
 		if ($getter === true) $getter = 'get' . ucfirst($field);
 		if ($setter === true || $setter === null) $setter = 'set' . ucfirst($field);
-		$this->virtuals[$field] = ['setter' => $setter, 'getter' => $getter, 'name'=>$field];
+		if ($getter !== false) $this->getters[$field] = ['type' => 'virtual', 'method' => $getter];
+		if ($setter !== false) $this->setters[$field] = ['method' => $getter];
+		$this->virtuals[$field] = ['setter' => $setter, 'getter' => $getter, 'name' => $field];
 	}
 
 	public function immutable(){ $this->mutable = false; }
@@ -65,11 +75,13 @@ class Model{
 	public function createGhost(): Ghost{ return new $this->ghost; }
 
 	public function hasMany($target, $ghost, $field): Relation{
+		$this->getters[$target] = ['type'=>'relation'];
 		return $this->relations[$target] = new Relation($target, Relation::TYPE_HASMANY, ['ghost' => $ghost, 'field' => $field]);
 	}
 
 	public function belongsTo($target, $ghost, $field = null): Relation{
 		if ($field === null) $field = $target . 'Id';
+		$this->getters[$target] = ['type'=>'relation'];
 		return $this->relations[$target] = new Relation($target, Relation::TYPE_BELONGSTO, ['ghost' => $ghost, 'field' => $field]);
 	}
 
@@ -78,6 +90,7 @@ class Model{
 	}
 
 	public function hasAttachment($name): AttachmentCategory{
+		$this->getters[$name] = ['type'=>'attachment'];
 		return $this->getAttachmentStorage()->addCategory($name);
 	}
 

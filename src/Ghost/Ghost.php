@@ -5,7 +5,7 @@ use Eternity2\Ghost\Exception\InsufficientData;
 use JsonSerializable;
 
 /**
- * @property-read int id
+ * @property-read int                    id
  * @property-read \Eternity2\Ghost\Model $model
  */
 abstract class Ghost implements JsonSerializable, AttachmentOwnerInterface{
@@ -31,7 +31,7 @@ abstract class Ghost implements JsonSerializable, AttachmentOwnerInterface{
 			static::setModel($model);
 		}
 		$decorator = new Decorator(static::$model);
-		if(is_callable($decoratorFunction)) $decoratorFunction($decorator);
+		if (is_callable($decoratorFunction)) $decoratorFunction($decorator);
 		return $decorator;
 	}
 
@@ -42,42 +42,31 @@ abstract class Ghost implements JsonSerializable, AttachmentOwnerInterface{
 #region Magic Methods
 
 	public function __get(string $name){
-		$field = array_key_exists($name, static::model()->fields) ? static::model()->fields[$name] : null;
-		if ($field){
-			if ($field->getter === null){
-				return $this->$name;
-			}else{
-				$getter = $field->getter;
-				return $this->$getter();
+		if (array_key_exists($name, static::model()->getters)){
+			$getter = static::model()->getters[$name];
+			switch ($getter['type']){
+				case 'virtual':
+					$method = $getter['method'];
+					if ($method === null) return $this->$name;
+					else return $this->$method();
+					break;
+				case 'relation':
+					return static::model()->relations[$name]->get($this);
+					break;
+				case 'attachment':
+					return $this->getAttachmentCategoryManager($name);
+					break;
 			}
 		}
-		$relation = array_key_exists($name, static::model()->relations) ? static::model()->relations[$name] : null;
-		if ($relation){
-			return $relation->get($this);
-		}
-
-		if (static::model()->getAttachmentStorage()->hasCategory($name)){
-			return $this->getAttachmentCategoryManager($name);
-		}
-
 		return null;
 	}
 
-	public function __isset(string $name){
-		return
-			array_key_exists($name, static::model()->fields) ||
-			array_key_exists($name, static::model()->relations) ||
-			array_key_exists($name, static::model()->virtuals) ||
-			static::model()->getAttachmentStorage()->hasCategory($name)
-			;
-	}
+	public function __isset(string $name){ return array_key_exists($name, static::model()->getters); }
 
 	public function __set($name, $value){
-		$field = array_key_exists($name, static::model()->fields) ? static::model()->fields[$name] : null;
-		if (!is_null($field) && $field->setter !== false){
-			$setter = $field->setter;
-			$this->$setter($value);
-			return;
+		if (array_key_exists($name, static::model()->setters)){
+			$method = static::model()->setters[$name]['method'];
+			$this->$method($value);
 		}
 	}
 
@@ -156,14 +145,14 @@ abstract class Ghost implements JsonSerializable, AttachmentOwnerInterface{
 	}
 
 	final private function update(){
-		if ($this->onBeforeUpdate()=== false || !static::model()->isMutable()) return false;
+		if ($this->onBeforeUpdate() === false || !static::model()->isMutable()) return false;
 		static::model()->repository->update($this);
 		$this->onAfterUpdate();
 		return $this->id;
 	}
 
 	final private function insert(){
-		if ($this->onBeforeInsert()=== false || !static::model()->isMutable()) return false;
+		if ($this->onBeforeInsert() === false || !static::model()->isMutable()) return false;
 		$this->id = static::model()->repository->insert($this);
 		$this->onAfterInsert();
 		return $this->id;

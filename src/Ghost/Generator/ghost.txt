@@ -14,8 +14,8 @@ abstract class {{name}}Ghost extends Ghost{
 
 	/** @var Model */
 	public static $model;
-	public static $table = "{{table}}";
-	public static $connectionName = "{{connectionName}}";
+	const Table = "{{table}}";
+	const ConnectionName = "{{connectionName}}";
 
 {{constants}}
 
@@ -28,7 +28,7 @@ abstract class {{name}}Ghost extends Ghost{
 /*ghost-generator-getters-setters*/
 
 	final static protected function createModel(): Model{
-		$model = new Model(static::$connectionName, static::$table, get_called_class());
+		$model = new Model(get_called_class());
 {{add-fields}}
 		return $model;
 	}

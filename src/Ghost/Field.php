@@ -28,6 +28,10 @@ class Field{
 		$this->data = $data;
 	}
 
+	public function __toString(){
+		return $this->name;
+	}
+
 	public function protect($getter, $setter){
 		$this->protected = true;
 		$this->getter = $getter;
